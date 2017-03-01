@@ -117,6 +117,60 @@ These are all members of the **VRPlatform** class
 </dl>
   
 
+### Stick / Touchpad
+
+<dl>
+
+<dt>Vector2 LeftStickPosition / RightStickPosition</dt>
+<dd>(todo)</dd>
+
+<dt>bool LeftStickTouching / RightStickTouching</dt>
+<dd></dd>
+
+<dt>bool LeftStickPressed / LeftStickDown / LeftStickReleased</dt>
+<dd></dd>
+
+<dt>bool RightStickPressed / RightStickDown / RightStickReleased</dt>
+<dd></dd>
+
+
+</dl>
+
+
+### Menu Buttons
+
+<dl>
+
+<dt>LeftMenuButtonPressed / LeftMenuButtonDown / LeftMenuButtonReleased</dt>
+<dd></dd>
+
+<dt>RightMenuButtonPressed / RightMenuButtonDown / RightMenuButtonReleased </dt>
+<dd>(only on Vive)</dd>
+
+</dl>
+
+
+### Touch ABXY Buttons
+
+Only on Touch.
+
+<dl>
+
+<dt>AButtonPressed / AButtonDown / AButtonReleased</dt>
+<dd></dd>
+
+<dt>AButtonPressed / BButtonDown / BButtonReleased</dt>
+<dd></dd>
+
+<dt>XButtonPressed / XButtonDown / XButtonReleased</dt>
+<dd></dd>
+
+<dt>YButtonPressed / YButtonDown / YButtonReleased</dt>
+<dd></dd>
+
+</dl>
+
+
 (todo: finish this!)
 
 
