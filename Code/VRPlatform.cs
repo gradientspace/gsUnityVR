@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using g3;
 using UnityEngine;
 using UnityEngine.VR;
 
-namespace f3
+namespace gs
 {
     /// <summary>
     ///  Abstraction of VR platforms. Since HMDs are basically the same,
@@ -52,18 +51,18 @@ namespace f3
             if (VRSettings.isDeviceActive) {
 
                 string sModel = VRDevice.model;
-                DebugUtil.Log(2, "VRPlatform.Initialize: VRDevice Model is \"{0}\"", sModel);
+                UnityEngine.Debug.Log(string.Format("VRPlatform.Initialize: VRDevice Model is \"{0}\"", sModel));
 
                 if (spatialCameraRig == null) {
                     currentVRDevice = Device.GenericVRDevice;
-                    DebugUtil.Log(2, "VRPlatform.Initialize: no spatial camera rig provided, using generic VR device");
+                    UnityEngine.Debug.Log("VRPlatform.Initialize: no spatial camera rig provided, using generic VR device");
                 } else if (OVRManager.isHmdPresent) { 
                     currentVRDevice = Device.OculusRift;
                 } else if (SteamVR.active) {
                     currentVRDevice = Device.HTCVive;
                 } else {
                     currentVRDevice = Device.GenericVRDevice;
-                    DebugUtil.Log(2, "VRPlatform.Initialize: could not detect Oculus Rift or HTC Vive, using generic VR device");
+                    UnityEngine.Debug.Log("VRPlatform.Initialize: could not detect Oculus Rift or HTC Vive, using generic VR device");
                 }
                 return true;
 
@@ -125,13 +124,13 @@ namespace f3
         }
 
 
-        public static Vector3f LeftControllerPosition {
+        public static Vector3 LeftControllerPosition {
             get { return GetLocalControllerPosition(0); }
         }
-        public static Vector3f RightControllerPosition {
+        public static Vector3 RightControllerPosition {
             get { return GetLocalControllerPosition(1); }
         }
-        public static Vector3f GetLocalControllerPosition(int i)
+        public static Vector3 GetLocalControllerPosition(int i)
         {
             if ( CurrentVRDevice == Device.OculusRift ) {
                 OVRInput.Controller controller = (i == 0) ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
@@ -140,43 +139,47 @@ namespace f3
             } else if ( CurrentVRDevice == Device.HTCVive ) {
                 GameObject controller = (i == 0) ? LeftViveControllerGO : RightViveControllerGO;
                 if (controller == null)
-                    return Vector3f.Zero;
+                    return Vector3.zero;
                 SteamVR_TrackedObject tracker = controller.GetComponent<SteamVR_TrackedObject>();
                 return tracker.transform.localPosition;
 
             } else {
-                return Vector3f.Zero;
+                return Vector3.zero;
             }
         }
 
 
-        public static Quaternionf LeftControllerRotation {
+        public static Quaternion LeftControllerRotation {
             get { return GetLocalControllerRotation(0); }
         }
-        public static Quaternionf RightControllerRotation {
+        public static Quaternion RightControllerRotation {
             get { return GetLocalControllerRotation(1); }
         }
-        public static Quaternionf GetLocalControllerRotation(int i)
+        public static Quaternion GetLocalControllerRotation(int i)
         {
             if ( CurrentVRDevice == Device.OculusRift ) {
                 OVRInput.Controller controller = (i == 0) ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
-                Quaternionf rotation = OVRInput.GetLocalControllerRotation(controller);
-                if ( RiftControllerRotationAngle != 0 )
-                    rotation = Quaternionf.AxisAngleD(rotation.AxisX, RiftControllerRotationAngle) * rotation;
+                Quaternion rotation = OVRInput.GetLocalControllerRotation(controller);
+                if (RiftControllerRotationAngle != 0) {
+                    Vector3 axisX = rotation * Vector3.right;
+                    rotation = Quaternion.AngleAxis(RiftControllerRotationAngle, axisX) * rotation;
+                }
                 return rotation;
 
             } else if ( CurrentVRDevice == Device.HTCVive ) {
                 GameObject controller = (i == 0) ? LeftViveControllerGO : RightViveControllerGO;
                 if (controller == null)
-                    return Quaternionf.Identity;
+                    return Quaternion.identity;
                 SteamVR_TrackedObject tracker = controller.GetComponent<SteamVR_TrackedObject>();
-                Quaternionf rotation = tracker.transform.localRotation;
-                if ( ViveControllerRotationAngle != 0 )
-                    rotation = Quaternionf.AxisAngleD(rotation.AxisX, ViveControllerRotationAngle) * rotation;
+                Quaternion rotation = tracker.transform.localRotation;
+                if (ViveControllerRotationAngle != 0) {
+                    Vector3 axisX = rotation * Vector3.right;
+                    rotation = Quaternion.AngleAxis(ViveControllerRotationAngle, axisX) * rotation;
+                }
                 return rotation;
 
             } else {
-                return Quaternionf.Identity;
+                return Quaternion.identity;
             }
         }
 
@@ -184,119 +187,93 @@ namespace f3
 
 
         /*
-         * Primary and Secondary Triggers
+         * Primary and Secondary Triggers and Grip Buttons
          *    - on Oculus Touch, Primary = Front/Index-Finger Trigger and Secondary = Grip/Middle-Finger Trigger
          *    - on Vive Wand, Primary = Trigger and Secondary = Grip Button
-         *    - Triggers provide float value in [0..1], InputTrigger turns this into
-         *      standard Pressed / Down / Released states
+         *    - Triggers provide float value in [0..1]
          *    - Vive Grip Buttons are not actually triggers! So they only have values 0 and 1.
-         *      But InputTrigger handles this just fine.
+         *    - [Vive-Only] Also have LeftGripButton and RightGripButton which return true/false
+         *      
          */
 
-
-
-        static InputTrigger leftTrigger;
-        public static InputTrigger LeftTrigger
-        {
+        public static float LeftTrigger {
             get {
-                if ( leftTrigger == null ) {
-                    if (CurrentVRDevice == Device.OculusRift) {
-                        leftTrigger = new InputTrigger(() => {
-                            return OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.LTouch);
-                        }, 0.9f, 0.1f);
-                    } else if (CurrentVRDevice == Device.HTCVive) {
-                        leftTrigger = new InputTrigger(() => {
-                            if (LeftViveControllerDevice == null)
-                                return 0.0f;
-                            Vector2f v = LeftViveControllerDevice.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Trigger);
-                            return v.x;
-                        }, 0.8f, 0.1f);
-                    } else {
-                        leftTrigger = InputTrigger.NoTrigger;
-                    }
+                if (CurrentVRDevice == Device.OculusRift) {
+                    return OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.LTouch);
+                } else if (CurrentVRDevice == Device.HTCVive) {
+                    Vector2 v = LeftViveControllerDevice.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Trigger);
+                    return v.x;
+                } else {
+                    return 0.0f;
                 }
-                return leftTrigger;
             }
         }
 
 
 
-        static InputTrigger rightTrigger;
-        public static InputTrigger RightTrigger
-        {
+        public static float RightTrigger {
             get {
-                if ( rightTrigger == null ) {
-                    if (CurrentVRDevice == Device.OculusRift) {
-                        rightTrigger = new InputTrigger(() => {
-                            return OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.RTouch);
-                        }, 0.9f, 0.1f);
-                    } else if (CurrentVRDevice == Device.HTCVive) {
-                        rightTrigger = new InputTrigger(() => {
-                            if (RightViveControllerDevice == null)
-                                return 0.0f;
-                            Vector2f v = RightViveControllerDevice.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Trigger);
-                            return v.x;
-                        }, 0.8f, 0.1f);
-                    } else {
-                        rightTrigger = InputTrigger.NoTrigger;
-                    }
+                if (CurrentVRDevice == Device.OculusRift) {
+                    return OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, OVRInput.Controller.RTouch);
+                } else if (CurrentVRDevice == Device.HTCVive) {
+                    Vector2 v = RightViveControllerDevice.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Trigger);
+                    return v.x;
+                } else {
+                    return 0.0f;
                 }
-                return rightTrigger;
             }
         }
 
 
 
-
-
-        static InputTrigger leftSecondaryTrigger;
-        public static InputTrigger LeftSecondaryTrigger
-        {
+        public static float LeftSecondaryTrigger {
             get {
-                if ( leftSecondaryTrigger == null ) {
-                    if (CurrentVRDevice == Device.OculusRift) {
-                        leftSecondaryTrigger = new InputTrigger(() => {
-                            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.LTouch);
-                        }, 0.9f, 0.1f);
-                    } else if (CurrentVRDevice == Device.HTCVive) {
-                        leftSecondaryTrigger = new InputTrigger(() => {
-                            if (LeftViveControllerDevice == null)
-                                return 0.0f;
-                            bool bDown = LeftViveControllerDevice.GetPress(SteamVR_Controller.ButtonMask.Grip);
-                            return (bDown) ? 1.0f : 0.0f;
-                        }, 0.9f, 0.1f);
-                    } else {
-                        leftSecondaryTrigger = InputTrigger.NoTrigger;
-                    }
+                if (CurrentVRDevice == Device.OculusRift) {
+                    return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.LTouch);
+                } else if (CurrentVRDevice == Device.HTCVive) {
+                    bool bDown = LeftViveControllerDevice.GetPress(SteamVR_Controller.ButtonMask.Grip);
+                    return (bDown) ? 1.0f : 0.0f;
+                } else {
+                    return 0.0f;
                 }
-                return leftSecondaryTrigger;
+            }
+        }
+
+
+        public static float RightSecondaryTrigger {
+            get {
+                if (CurrentVRDevice == Device.OculusRift) {
+                    return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.RTouch);
+                } else if (CurrentVRDevice == Device.HTCVive) {
+                    bool bDown = RightViveControllerDevice.GetPress(SteamVR_Controller.ButtonMask.Grip);
+                    return (bDown) ? 1.0f : 0.0f;
+                } else {
+                    return 0.0f;
+                }
             }
         }
 
 
 
 
-        static InputTrigger rightSecondaryTrigger;
-        public static InputTrigger RightSecondaryTrigger
-        {
+
+        public static bool LeftGripButton {
             get {
-                if ( rightSecondaryTrigger == null ) {
-                    if (CurrentVRDevice == Device.OculusRift) {
-                        rightSecondaryTrigger = new InputTrigger(() => {
-                            return OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.RTouch);
-                        }, 0.9f, 0.1f);
-                    } else if (CurrentVRDevice == Device.HTCVive) {
-                        rightSecondaryTrigger = new InputTrigger(() => {
-                            if (RightViveControllerDevice == null)
-                                return 0.0f;
-                            bool bDown = RightViveControllerDevice.GetPress(SteamVR_Controller.ButtonMask.Grip);
-                            return (bDown) ? 1.0f : 0.0f;
-                        }, 0.9f, 0.1f);
-                    } else {
-                        rightSecondaryTrigger = InputTrigger.NoTrigger;
-                    }
+                if (CurrentVRDevice == Device.HTCVive) {
+                    return LeftViveControllerDevice.GetPress(SteamVR_Controller.ButtonMask.Grip);
+                } else {
+                    return false;
                 }
-                return rightSecondaryTrigger;
+            }
+        }
+
+        public static bool RightGripButton {
+            get {
+                if (CurrentVRDevice == Device.HTCVive) {
+                    return RightViveControllerDevice.GetPress(SteamVR_Controller.ButtonMask.Grip);
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -318,7 +295,7 @@ namespace f3
 
 
 
-        public static Vector2f LeftStickPosition
+        public static Vector2 LeftStickPosition
         {
             get {
                 if (CurrentVRDevice == Device.OculusRift) {
@@ -326,12 +303,12 @@ namespace f3
                 } else if (CurrentVRDevice == Device.HTCVive) {
                     return LeftViveControllerDevice.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Touchpad);
                 } else
-                    return Vector2f.Zero;
+                    return Vector2.zero;
             }
         }
 
 
-        public static Vector2f RightStickPosition
+        public static Vector2 RightStickPosition
         {
             get {
                 if (CurrentVRDevice == Device.OculusRift) {
@@ -339,7 +316,7 @@ namespace f3
                 } else if (CurrentVRDevice == Device.HTCVive) {
                     return RightViveControllerDevice.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Touchpad);
                 } else
-                    return Vector2f.Zero;
+                    return Vector2.zero;
             }
         }
 
@@ -672,7 +649,7 @@ namespace f3
 
                 // prefab has all three of these tagged MainCamera?
                 List<GameObject> children = new List<GameObject>();
-                UnityUtil.CollectAllChildren(cameraRig, children);
+                collect_all_children(cameraRig, children);
                 foreach ( var child in children ) {
                     if ( child.tag == "MainCamera" ) {
                         if (child.name != "CenterEyeAnchor")
@@ -773,16 +750,17 @@ namespace f3
             iLeftViveDeviceIdx = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Leftmost);
             iRightViveDeviceIdx = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Rightmost);
 
-            List<GameObject> children = new List<GameObject>(spatialCameraRig.Children());
-            for (int i = 0; i < children.Count; ++i) {
-                SteamVR_TrackedObject tracked = children[i].GetComponent<SteamVR_TrackedObject>();
+            int n = spatialCameraRig.transform.childCount;
+            for (int i = 0; i < n; ++i) {
+                GameObject child = spatialCameraRig.transform.GetChild(i).gameObject;
+                SteamVR_TrackedObject tracked = child.GetComponent<SteamVR_TrackedObject>();
                 if (tracked == null)
                     continue;
                 int idx = (int)tracked.index;
                 if (idx == iLeftViveDeviceIdx)
-                    leftViveController = children[i];
+                    leftViveController = child;
                 else if (idx == iRightViveDeviceIdx)
-                    rightViveController = children[i];
+                    rightViveController = child;
             }
         }
 
@@ -816,5 +794,18 @@ namespace f3
             }
         }
 
+
+
+
+
+        // this is just an internal utility method...
+        private static void collect_all_children(GameObject root, List<GameObject> vChildren)
+        {
+            foreach ( Transform t in root.transform ) {
+                GameObject go = t.gameObject;
+                vChildren.Add(go);
+                collect_all_children(go, vChildren);
+            }
+        }
     }
 }
