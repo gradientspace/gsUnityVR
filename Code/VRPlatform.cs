@@ -90,7 +90,7 @@ namespace gs
                     return OVRInput.GetControllerPositionTracked(OVRInput.Controller.LTouch) ||
                             OVRInput.GetControllerPositionTracked(OVRInput.Controller.RTouch);
                 } else if ( CurrentVRDevice == Device.HTCVive ) {
-                    return LeftViveControllerDevice != null || RightViveControllerDevice != null;
+                    return LeftViveControllerDeviceValid || RightViveControllerDeviceValid;
                 } else {
                     return false;
                 }
@@ -782,16 +782,27 @@ namespace gs
             get {
                 lookup_vive_controllers();
                 if (iLeftViveDeviceIdx == -1)
-                    return null;
+                    return SteamVR_Controller.Input(0);
                 return SteamVR_Controller.Input(iLeftViveDeviceIdx);
             }
         }
+        static bool LeftViveControllerDeviceValid {
+            get {
+                return iLeftViveDeviceIdx != -1;
+            }
+        }
+
         static SteamVR_Controller.Device RightViveControllerDevice {
             get {
                 lookup_vive_controllers();
                 if (iRightViveDeviceIdx == -1)
-                    return null;
+                    return SteamVR_Controller.Input(0);
                 return SteamVR_Controller.Input(iRightViveDeviceIdx);
+            }
+        }
+        static bool RightViveControllerDeviceValid {
+            get {
+                return iRightViveDeviceIdx != -1;
             }
         }
 
