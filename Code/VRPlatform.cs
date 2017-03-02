@@ -625,7 +625,8 @@ namespace gs
 
             if (OVRManager.isHmdPresent)
                 camRig = AutoConfigure_OVR();
-            else if ( SteamVR.active )
+            //else if ( SteamVR.active )          // [RMS] SteamVR.active is false until we create a SteamVR prefab!
+            else if ( sModel.Contains("Vive") )   //   This works but I don't like it...no other way in the SDK to tell this??
                 camRig = AutoConfigure_SteamVR();
 
             UnityEngine.Debug.Log(string.Format(
