@@ -48,6 +48,14 @@ in some Awake() function, before you try to use VRPlatform for anything else
 
 
 
+# Notes
+
+SteamVR by default will auto-enable VR when you hit the Unity Play button in the Editor.
+Since this library includes SteamVR, this will start happening as soon as you include this project.
+To prevent this behavior, un-check the box in the SteamVR section of the Unity Preferences panel (under Edit)
+
+
+
 # VRPlatform API
 
 These are all members of the **VRPlatform** class
