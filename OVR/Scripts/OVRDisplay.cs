@@ -69,7 +69,7 @@ public class OVRDisplay
 		public float timeWarpError;
 	}
 
-	private bool needsConfigureTexture;
+	//private bool needsConfigureTexture;
 	private EyeRenderDesc[] eyeDescs = new EyeRenderDesc[2];
 
 	/// <summary>

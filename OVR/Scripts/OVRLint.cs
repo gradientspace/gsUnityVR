@@ -121,12 +121,13 @@ public static class OVRLint
 		    EditorUtility.DisplayDialog ("Optimize MT Rendering?", "For CPU performance, we recommend enabling multithreaded rendering.", "Use recommended", "Skip"))
 			PlayerSettings.MTRendering = PlayerSettings.mobileMTRendering = true;
 
-		if ((PlayerSettings.renderingPath == RenderingPath.DeferredShading ||
-		    PlayerSettings.renderingPath == RenderingPath.DeferredLighting ||
-		    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredShading ||
-		    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredLighting) &&
-		    EditorUtility.DisplayDialog ("Optimize Rendering Path?", "For CPU performance, we recommend disabling deferred shading.", "Use recommended", "Skip"))
-			PlayerSettings.renderingPath = PlayerSettings.mobileRenderingPath = RenderingPath.Forward;
+        // [RMS] disabling this to get rid of irritating warning..
+		//if ((PlayerSettings.renderingPath == RenderingPath.DeferredShading ||
+		//    PlayerSettings.renderingPath == RenderingPath.DeferredLighting ||
+		//    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredShading ||
+		//    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredLighting) &&
+		//    EditorUtility.DisplayDialog ("Optimize Rendering Path?", "For CPU performance, we recommend disabling deferred shading.", "Use recommended", "Skip"))
+		//	PlayerSettings.renderingPath = PlayerSettings.mobileRenderingPath = RenderingPath.Forward;
 
 #if UNITY_5_5_OR_NEWER
 		if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.MultiPass &&

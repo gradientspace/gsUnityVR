@@ -84,8 +84,8 @@ public class OVRManager : MonoBehaviour
 	}
 
 	private bool _isPaused;
-	private IEnumerable<Camera> disabledCameras;
-	float prevTimeScale;
+	//private IEnumerable<Camera> disabledCameras;
+	//float prevTimeScale;
 	private bool paused
 	{
 		get { return _isPaused; }
