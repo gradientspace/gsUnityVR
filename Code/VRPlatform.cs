@@ -653,6 +653,7 @@ namespace gs
                 collect_all_children(cameraRig, children);
                 foreach ( var child in children ) {
                     if ( child.tag == "MainCamera" ) {
+                        child.GetComponent<Camera>().backgroundColor = mainCam.backgroundColor;
                         if (child.name != "CenterEyeAnchor")
                             child.tag = "Untagged";
                     }
