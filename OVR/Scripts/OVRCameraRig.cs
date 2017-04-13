@@ -22,7 +22,6 @@ limitations under the License.
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using VR = UnityEngine.VR;
 
@@ -88,10 +87,6 @@ public class OVRCameraRig : MonoBehaviour
 	private Camera _leftEyeCamera;
 	private Camera _rightEyeCamera;
 
-#if UNITY_ANDROID && !UNITY_EDITOR
-    bool correctedTrackingSpace = false;
-#endif
-
 #region Unity Messages
 	private void Awake()
 	{
@@ -109,6 +104,11 @@ public class OVRCameraRig : MonoBehaviour
 		UpdateAnchors();
 	}
 
+	private void Update()
+	{
+		_skipUpdate = false;
+	}
+
 #endregion
 
 	private void UpdateAnchors()
@@ -120,11 +120,9 @@ public class OVRCameraRig : MonoBehaviour
 		
 		if (_skipUpdate)
 		{
-			centerEyeAnchor.FromOVRPose(OVRPose.identity);
-			leftEyeAnchor.FromOVRPose(OVRPose.identity);
-			rightEyeAnchor.FromOVRPose(OVRPose.identity);
-
-			_skipUpdate = false;
+			centerEyeAnchor.FromOVRPose(OVRPose.identity, true);
+			leftEyeAnchor.FromOVRPose(OVRPose.identity, true);
+			rightEyeAnchor.FromOVRPose(OVRPose.identity, true);
 
 			return;
 		}

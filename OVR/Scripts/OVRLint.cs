@@ -78,78 +78,80 @@ public static class OVRLint
 	static void RunCheck()
 	{
 		CheckStaticCommonIssues();
-#if UNITY_ANDROID
+		#if UNITY_ANDROID
 		CheckStaticAndroidIssues();
-#endif
+		#endif
 
 		if (EditorApplication.isPlaying)
 		{
 			CheckRuntimeCommonIssues();
-#if UNITY_ANDROID
+			#if UNITY_ANDROID
 			CheckRuntimeAndroidIssues();
-#endif
+			#endif
 		}
 	}
 
 	static void CheckStaticCommonIssues ()
 	{
 		if (QualitySettings.anisotropicFiltering != AnisotropicFiltering.Enable &&
-			EditorUtility.DisplayDialog("Optimize Aniso?", "Anisotropic filtering is recommended for optimal quality and performance. Enable Anisotropic Filtering?", "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog("Optimize Aniso?", "Anisotropic filtering is recommended for optimal quality and performance.", "Use recommended", "Skip"))
 			QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
 
-#if UNITY_ANDROID
+		#if UNITY_ANDROID
 		int recommendedPixelLightCount = 1;
-#else
+		#else
 		int recommendedPixelLightCount = 3;
-#endif
+		#endif
 
 		if (QualitySettings.pixelLightCount > recommendedPixelLightCount &&
-			EditorUtility.DisplayDialog ("Optimize Pixel Light Count?", "For GPU performance use no more than " + recommendedPixelLightCount + " pixel light count.", "Set Pixel Light Count to recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Pixel Light Count?", "For GPU performance use no more than " + recommendedPixelLightCount + " pixel light count.", "Use recommended", "Skip"))
 			QualitySettings.pixelLightCount = recommendedPixelLightCount;
 
 		if (!PlayerSettings.gpuSkinning &&
-		    EditorUtility.DisplayDialog ("Optimize GPU Skinning?", "For CPU performance, we recommend GPU skinning.", "Use recommended", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize GPU Skinning?", "For CPU performance, please use GPU skinning.", "Use recommended", "Skip"))
 			PlayerSettings.gpuSkinning = true;
 
 #if UNITY_5_4_OR_NEWER
 		if (!PlayerSettings.graphicsJobs &&
-			EditorUtility.DisplayDialog ("Optimize Graphics Jobs?", "For CPU performance, we recommend graphics jobs.", "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Graphics Jobs?", "For CPU performance, please use graphics jobs.", "Use recommended", "Skip"))
 			PlayerSettings.graphicsJobs = true;
 #endif
 
 		if ((!PlayerSettings.MTRendering || !PlayerSettings.mobileMTRendering) &&
-		    EditorUtility.DisplayDialog ("Optimize MT Rendering?", "For CPU performance, we recommend enabling multithreaded rendering.", "Use recommended", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize MT Rendering?", "For CPU performance, please enable multithreaded rendering.", "Use recommended", "Skip"))
 			PlayerSettings.MTRendering = PlayerSettings.mobileMTRendering = true;
 
-        // [RMS] disabling this to get rid of irritating warning..
-		//if ((PlayerSettings.renderingPath == RenderingPath.DeferredShading ||
-		//    PlayerSettings.renderingPath == RenderingPath.DeferredLighting ||
-		//    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredShading ||
-		//    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredLighting) &&
-		//    EditorUtility.DisplayDialog ("Optimize Rendering Path?", "For CPU performance, we recommend disabling deferred shading.", "Use recommended", "Skip"))
-		//	PlayerSettings.renderingPath = PlayerSettings.mobileRenderingPath = RenderingPath.Forward;
+        // [RMS] this throws too many warnings!
+#if false
+        if ((PlayerSettings.renderingPath == RenderingPath.DeferredShading ||
+		    PlayerSettings.renderingPath == RenderingPath.DeferredLighting ||
+		    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredShading ||
+		    PlayerSettings.mobileRenderingPath == RenderingPath.DeferredLighting) &&
+		    EditorUtility.DisplayDialog ("Optimize Rendering Path?", "For CPU performance, please do not use deferred shading.", "Use recommended", "Skip"))
+			PlayerSettings.renderingPath = PlayerSettings.mobileRenderingPath = RenderingPath.Forward;
+#endif
 
 #if UNITY_5_5_OR_NEWER
 		if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.MultiPass &&
-		    EditorUtility.DisplayDialog ("Optimize Stereo Rendering?", "For CPU performance, enable single-pass or instanced stereo rendering.", "Use recommended", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize Stereo Rendering?", "For CPU performance, please enable single-pass or instanced stereo rendering.", "Use recommended", "Skip"))
 			PlayerSettings.stereoRenderingPath = StereoRenderingPath.Instancing;
 #elif UNITY_5_4_OR_NEWER
 		if (!PlayerSettings.singlePassStereoRendering &&
-			EditorUtility.DisplayDialog ("Optimize Stereo Rendering?", "For CPU performance, enable single-pass or instanced stereo rendering.", "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Stereo Rendering?", "For CPU performance, please enable single-pass or instanced stereo rendering.", "Use recommended", "Skip"))
 			PlayerSettings.singlePassStereoRendering = true;
 #endif
 
 		if (RenderSettings.skybox &&
-			EditorUtility.DisplayDialog ("Optimize Clearing?", "For GPU performance, do not use Unity's built-in Skybox.", "Disable Built-In Skybox", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Clearing?", "For GPU performance, please don't use Unity's built-in Skybox.", "Use recommended", "Skip"))
 			RenderSettings.skybox = null;
 
 		if (LightmapSettings.lightmaps.Length > 0 && LightmapSettings.lightmapsMode != LightmapsMode.NonDirectional &&
-		    EditorUtility.DisplayDialog ("Optimize Lightmap Directionality?", "For GPU performance, do not use directional lightmaps.", "Use Non-Directional lightmaps", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize Lightmap Directionality?", "For GPU performance, please don't use directional lightmaps.", "Use recommended", "Skip"))
 			LightmapSettings.lightmapsMode = LightmapsMode.NonDirectional;
 
 #if UNITY_5_4_OR_NEWER
 		if (Lightmapping.realtimeGI &&
-			EditorUtility.DisplayDialog ("Optimize Realtime GI?", "For GPU performance, do not use real-time global illumination.", "Disable Real-Time Global illumination", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Realtime GI?", "For GPU performance, please don't use real-time global illumination.", "Use recommended", "Skip"))
 			Lightmapping.realtimeGI = false;
 #endif
 
@@ -158,12 +160,12 @@ public static class OVRLint
 		for (int i = 0; i < lights.Length; ++i) {
 #if UNITY_5_4_OR_NEWER
 			if (lights [i].type != LightType.Directional && !lights [i].isBaked &&
-				EditorUtility.DisplayDialog ("Optimize Light Baking?", "For GPU performance, we recommend baking light " + lights [i].name, "Bake light", "Skip"))
+				EditorUtility.DisplayDialog ("Optimize Light Baking?", "For GPU performance, please bake light " + lights [i].name, "Use recommended", "Skip"))
 				bakeLights = true;
 #endif
 
 			if (lights [i].shadows != LightShadows.None &&
-			    EditorUtility.DisplayDialog ("Optimize Shadows?", "For CPU performance, disable shadows on light " + lights [i].name, "Use recommended", "Skip"))
+			    EditorUtility.DisplayDialog ("Optimize Shadows?", "For CPU performance, please disable shadows on light " + lights [i].name, "Use recommended", "Skip"))
 				lights [i].shadows = LightShadows.None;
 		}
 
@@ -174,7 +176,7 @@ public static class OVRLint
 
 		var sources = GameObject.FindObjectsOfType<AudioSource> ();
 		if (sources.Length > 16 &&
-		    EditorUtility.DisplayDialog ("Optimize Audio Source Count?", "For CPU performance, disable all but the top 16 AudioSources.", "Use recommended", "Skip")) {
+		    EditorUtility.DisplayDialog ("Optimize Audio Source Count?", "For CPU performance, please disable all but the top 16 AudioSources.", "Use recommended", "Skip")) {
 			Array.Sort(sources, (a, b) => { return a.priority.CompareTo(b.priority); });
 			for (int i = 16; i < sources.Length; ++i) {
 				sources[i].enabled = false;
@@ -184,30 +186,30 @@ public static class OVRLint
 		var clips = GameObject.FindObjectsOfType<AudioClip> ();
 		for (int i = 0; i < clips.Length; ++i) {
 			if (clips [i].loadType == AudioClipLoadType.DecompressOnLoad)
-				Debug.LogWarning("For fast loading, don't use decompress on load for clip " + clips [i].name);
+				Debug.LogWarning("For fast loading, please don't use decompress on load for clip " + clips [i].name);
 
 			if (clips [i].preloadAudioData)
-				Debug.LogWarning("For fast loading, don't preload audio data for clip " + clips [i].name);
+				Debug.LogWarning("For fast loading, please don't preload audio data for clip " + clips [i].name);
 		}
 
 		if (Physics.defaultContactOffset < 0.01f &&
-		    EditorUtility.DisplayDialog ("Optimize Contact Offset?", "For CPU performance, don't use default contact offset below 0.01.", "Set to 0.01", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize Contact Offset?", "For CPU performance, please don't use default contact offset below 0.01.", "Use recommended", "Skip"))
 			Physics.defaultContactOffset = 0.01f;
 
 		if (Physics.sleepThreshold < 0.005f &&
-			EditorUtility.DisplayDialog ("Optimize Sleep Threshold?", "For CPU performance, don't use sleep threshold below 0.005.", "Set to 0.005", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Sleep Threshold?", "For CPU performance, please don't use sleep threshold below 0.005.", "Use recommended", "Skip"))
 			Physics.sleepThreshold = 0.005f;
 
 #if UNITY_5_4_OR_NEWER
 		if (Physics.defaultSolverIterations > 8 &&
-		    EditorUtility.DisplayDialog ("Optimize Solver Iterations?", "For CPU performance, don't use excessive solver iteration counts.", "Set default to 8", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize Solver Iterations?", "For CPU performance, please don't use excessive solver iteration counts.", "Use recommended", "Skip"))
 			Physics.defaultSolverIterations = 8;
 #endif
 
 		var colliders = GameObject.FindObjectsOfType<Collider> ();
 		for (int i = 0; i < colliders.Length; ++i) {
 			if (!colliders [i].gameObject.isStatic && colliders [i].attachedRigidbody == null && colliders [i].GetComponent<Rigidbody>() == null &&
-			    EditorUtility.DisplayDialog ("Optimize Nonstatic Collider?", "For CPU performance, attach a Rigidbody to non-static collider " + colliders [i].name, "Add Kinematic Rigidbody", "Skip")) {
+			    EditorUtility.DisplayDialog ("Optimize Nonstatic Collider?", "For CPU performance, please attach a Rigidbody to non-static collider " + colliders [i].name, "Use recommended", "Skip")) {
 				var rb = colliders [i].gameObject.AddComponent<Rigidbody> ();
 				rb.isKinematic = true;
 			}
@@ -216,7 +218,7 @@ public static class OVRLint
 		var materials = Resources.FindObjectsOfTypeAll<Material> ();
 		for (int i = 0; i < materials.Length; ++i) {
 			if (materials [i].shader.name.Contains ("Parallax") || materials [i].IsKeywordEnabled ("_PARALLAXMAP") &&
-			    EditorUtility.DisplayDialog ("Optimize Shading?", "For GPU performance, disable parallax-mapped materials.", "Use recommended", "Skip")) {
+			    EditorUtility.DisplayDialog ("Optimize Shading?", "For GPU performance, please don't use parallax-mapped materials.", "Use recommended", "Skip")) {
 				if (materials [i].IsKeywordEnabled ("_PARALLAXMAP"))
 					materials [i].DisableKeyword ("_PARALLAXMAP");
 
@@ -235,12 +237,12 @@ public static class OVRLint
 		var renderers = GameObject.FindObjectsOfType<Renderer> ();
 		for (int i = 0; i < renderers.Length; ++i) {
 			if (renderers [i].sharedMaterial == null)
-				Debug.LogWarning ("Avoid instanced materials on renderer " + renderers [i].name);
+				Debug.LogWarning ("Please avoid instanced materials on renderer " + renderers [i].name);
 		}
 		
 		var overlays = GameObject.FindObjectsOfType<OVROverlay> ();
 		if (overlays.Length > 4 &&
-		    EditorUtility.DisplayDialog ("Optimize VR Layer Count?", "For GPU performance, use 4 or fewer VR layers.", "Disable extra overlays", "Skip")) {
+		    EditorUtility.DisplayDialog ("Optimize VR Layer Count?", "For GPU performance, please use 4 or fewer VR layers.", "Use recommended", "Skip")) {
 			for (int i = 4; i < OVROverlay.instances.Length; ++i)
 				OVROverlay.instances[i].enabled = false;
 		}
@@ -249,7 +251,7 @@ public static class OVRLint
 	static void CheckRuntimeCommonIssues()
 	{
 		if (!OVRPlugin.occlusionMesh &&
-			EditorUtility.DisplayDialog ("Optimize Occlusion Mesh?", "For GPU performance, use occlusion mesh.", "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Occlusion Mesh?", "For GPU performance, please use occlusion mesh.", "Use recommended", "Skip"))
 			OVRPlugin.occlusionMesh = true;
 		
 		if (QualitySettings.antiAliasing != OVRManager.display.recommendedMSAALevel &&
@@ -257,7 +259,7 @@ public static class OVRLint
 			QualitySettings.antiAliasing = OVRManager.display.recommendedMSAALevel;
 
 		if (UnityEngine.VR.VRSettings.renderScale > 1.5 &&
-			EditorUtility.DisplayDialog ("Optimize Render Scale?", "For CPU performance, don't use render scale over 1.5.", "Set to 1.5", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Render Scale?", "For CPU performance, please don't use render scale over 1.5.", "Use recommended", "Skip"))
 			UnityEngine.VR.VRSettings.renderScale = 1.5f;
 	}
 
@@ -265,30 +267,30 @@ public static class OVRLint
 	{
 		AndroidSdkVersions recommendedAndroidSdkVersion = AndroidSdkVersions.AndroidApiLevel19;
 		if ((int)PlayerSettings.Android.minSdkVersion < (int)recommendedAndroidSdkVersion &&
-			EditorUtility.DisplayDialog ("Optimize Android API Level?", "To avoid legacy work-arounds, require at least API level " + (int)recommendedAndroidSdkVersion, "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Android API Level?", "To avoid legacy work-arounds, please require at least API level " + (int)recommendedAndroidSdkVersion, "Use recommended", "Skip"))
 			PlayerSettings.Android.minSdkVersion = recommendedAndroidSdkVersion;
 		
 		var materials = Resources.FindObjectsOfTypeAll<Material> ();
 		for (int i = 0; i < materials.Length; ++i) {
 			if (materials [i].IsKeywordEnabled ("_SPECGLOSSMAP") || materials [i].IsKeywordEnabled ("_METALLICGLOSSMAP") &&
-			    EditorUtility.DisplayDialog ("Optimize Specular Material?", "For GPU performance, don't use specular shader on material " + materials [i].name, "Use recommended", "Skip")) {
+			    EditorUtility.DisplayDialog ("Optimize Specular Material?", "For GPU performance, please don't use specular shader on material " + materials [i].name, "Use recommended", "Skip")) {
 				materials [i].DisableKeyword ("_SPECGLOSSMAP");
 				materials [i].DisableKeyword ("_METALLICGLOSSMAP");
 			}
 
 			if (materials [i].passCount > 1)
-				Debug.LogWarning ("We recommend using 2 or fewer passes in material " + materials [i].name);
+				Debug.LogWarning ("Please use 2 or fewer passes in material " + materials [i].name);
 		}
 
 #if UNITY_5_5_OR_NEWER
 		ScriptingImplementation backend = PlayerSettings.GetScriptingBackend(UnityEditor.BuildTargetGroup.Android);
 		if (backend != UnityEditor.ScriptingImplementation.IL2CPP &&
-			EditorUtility.DisplayDialog ("Optimize Scripting Backend?", "For CPU performance, we recommend IL2CPP.", "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Scripting Backend?", "For CPU performance, please use IL2CPP.", "Use recommended", "Skip"))
 			PlayerSettings.SetScriptingBackend(UnityEditor.BuildTargetGroup.Android, UnityEditor.ScriptingImplementation.IL2CPP);
 #else
 		ScriptingImplementation backend = (ScriptingImplementation)PlayerSettings.GetPropertyInt("ScriptingBackend", UnityEditor.BuildTargetGroup.Android);
 		if (backend != UnityEditor.ScriptingImplementation.IL2CPP &&
-			EditorUtility.DisplayDialog ("Optimize Scripting Backend?", "For CPU performance, we recommend IL2CPP.", "Use recommended", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize Scripting Backend?", "For CPU performance, please use IL2CPP.", "Use recommended", "Skip"))
 			PlayerSettings.SetPropertyInt("ScriptingBackend", (int)UnityEditor.ScriptingImplementation.IL2CPP, UnityEditor.BuildTargetGroup.Android);
 #endif
 
@@ -308,19 +310,19 @@ public static class OVRLint
 
 		for (int i = 0; i < textures.Length; ++i) {
 			if (textures [i].filterMode == FilterMode.Trilinear && textures [i].mipmapCount == 1 &&
-			    EditorUtility.DisplayDialog ("Optimize Texture Filtering?", "For GPU performance, generate mipmaps or disable trilinear filtering for texture " + textures [i].name, "Use recommended", "Skip"))
+			    EditorUtility.DisplayDialog ("Optimize Texture Filtering?", "For GPU performance, please generate mipmaps or disable trilinear filtering for texture " + textures [i].name, "Use recommended", "Skip"))
 				textures [i].filterMode = FilterMode.Bilinear;
 		}
 
 		var projectors = GameObject.FindObjectsOfType<Projector> ();
 		if (projectors.Length > 0 &&
-		    EditorUtility.DisplayDialog ("Optimize Projectors?", "For GPU performance, disable projectors.", "Use recommended", "Skip")) {
+		    EditorUtility.DisplayDialog ("Optimize Projectors?", "For GPU performance, please don't use projectors.", "Use recommended", "Skip")) {
 			for (int i = 0; i < projectors.Length; ++i)
 				projectors[i].enabled = false;
 		}
 
 		if (EditorUserBuildSettings.androidBuildSubtarget != MobileTextureSubtarget.ASTC &&
-		    EditorUtility.DisplayDialog ("Optimize Texture Compression?", "For GPU performance, use ASTC.", "Use recommended", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize Texture Compression?", "For GPU performance, please use ASTC.", "Use recommended", "Skip"))
 			EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
 
 		var cameras = GameObject.FindObjectsOfType<Camera> ();
@@ -331,20 +333,20 @@ public static class OVRLint
 		}
 
 		if (clearCount > 2)
-			Debug.LogWarning ("We recommend using 2 or fewer clears.");
+			Debug.LogWarning ("Please use 2 or fewer clears.");
 	}
 
 	static void CheckRuntimeAndroidIssues()
 	{
 		if (UnityStats.usedTextureMemorySize + UnityStats.vboTotalBytes > 1000000)
-			Debug.LogWarning ("We recommend using less than 1 GB of vertex and texture memory.");
+			Debug.LogWarning ("Please use less than 1GB of vertex and texture memory.");
 		
 		if (OVRManager.cpuLevel < 0 || OVRManager.cpuLevel > 2 &&
-		    EditorUtility.DisplayDialog ("Optimize CPU level?", "For battery life, use CPU level 2 or lower.", "Set CPU level to 2", "Skip"))
+		    EditorUtility.DisplayDialog ("Optimize CPU level?", "For battery life, please use a safe CPU level.", "Use recommended", "Skip"))
 			OVRManager.cpuLevel = 2;
 
 		if (OVRManager.gpuLevel < 0 || OVRManager.gpuLevel > 2 &&
-			EditorUtility.DisplayDialog ("Optimize CPU level?", "For battery life, use GPU level 2 or lower.", "Set GPU level to 2", "Skip"))
+			EditorUtility.DisplayDialog ("Optimize CPU level?", "For battery life, please use a safe GPU level.", "Use recommended", "Skip"))
 			OVRManager.gpuLevel = 2;
 
 		if (UnityStats.triangles > 100000 || UnityStats.vertices > 100000)

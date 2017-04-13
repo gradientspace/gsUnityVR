@@ -23,8 +23,6 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using System;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.IO;
 
 [InitializeOnLoad]
@@ -76,10 +74,15 @@ class OVRMoonlightLoader
 		if (PlayerSettings.virtualRealitySupported)
 			return;
 		
-		var mgrs = GameObject.FindObjectsOfType<OVRManager> ().Where (m => m.isActiveAndEnabled);
-		if (mgrs.Count () != 0) {
-			Debug.Log ("Enabling Unity VR support");
-			PlayerSettings.virtualRealitySupported = true;
+		var mgrs = GameObject.FindObjectsOfType<OVRManager>();
+		for (int i = 0; i < mgrs.Length; ++i)
+		{
+			if (mgrs [i].isActiveAndEnabled)
+			{
+				Debug.Log ("Enabling Unity VR support");
+				PlayerSettings.virtualRealitySupported = true;
+				return;
+			}
 		}
 	}
 
@@ -88,12 +91,21 @@ class OVRMoonlightLoader
 		if (!PlayerSettings.virtualRealitySupported)
 			return;
 
+#if UNITY_5_6_OR_NEWER
+		if (PlayerSettings.applicationIdentifier == "" || PlayerSettings.applicationIdentifier == "com.Company.ProductName")
+		{
+			string defaultBundleId = "com.oculus.UnitySample";
+			Debug.LogWarning("\"" + PlayerSettings.applicationIdentifier + "\" is not a valid bundle identifier. Defaulting to \"" + defaultBundleId + "\".");
+			PlayerSettings.applicationIdentifier = defaultBundleId;
+		}
+#else
 		if (PlayerSettings.bundleIdentifier == "" || PlayerSettings.bundleIdentifier == "com.Company.ProductName")
 		{
 			string defaultBundleId = "com.oculus.UnitySample";
 			Debug.LogWarning("\"" + PlayerSettings.bundleIdentifier + "\" is not a valid bundle identifier. Defaulting to \"" + defaultBundleId + "\".");
 			PlayerSettings.bundleIdentifier = defaultBundleId;
 		}
+#endif
 	}
 
 	private static void EnforceInputManagerBindings()

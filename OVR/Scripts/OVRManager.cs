@@ -26,8 +26,6 @@ limitations under the License.
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using VR = UnityEngine.VR;
 
@@ -83,39 +81,8 @@ public class OVRManager : MonoBehaviour
 		}
 	}
 
-	private bool _isPaused;
-	//private IEnumerable<Camera> disabledCameras;
-	//float prevTimeScale;
-	private bool paused
-	{
-		get { return _isPaused; }
-		set {
-			if (value == _isPaused)
-				return;
-
-			// Sample code to handle VR Focus
-
-//			if (value)
-//			{
-//				prevTimeScale = Time.timeScale;
-//				Time.timeScale = 0.01f;
-//				disabledCameras = GameObject.FindObjectsOfType<Camera>().Where(c => c.isActiveAndEnabled);
-//				foreach (var cam in disabledCameras)
-//					cam.enabled = false;
-//			}
-//			else
-//			{
-//				Time.timeScale = prevTimeScale;
-//				if (disabledCameras != null) {
-//					foreach (var cam in disabledCameras)
-//						cam.enabled = true;
-//				}
-//				disabledCameras = null;
-//			}
-
-			_isPaused = value;
-		}
-	}
+	//private IEnumerable<Camera> disabledCameras;   // [RMS] disable warning
+	//float prevTimeScale;   // [RMS] disable warning
 
 	/// <summary>
 	/// Occurs when an HMD attached.
@@ -456,11 +423,11 @@ public class OVRManager : MonoBehaviour
 
 			return OVRPlugin.powerSaving;
 		}
-	}
-
+	}
+
 	/// <summary>
 	/// Gets or sets the eye texture format.
-	/// This feature is only for UNITY_5_6_OR_NEWER
+	/// This feature is only for UNITY_5_6_OR_NEWER On PC
 	/// </summary>
 	public static EyeTextureFormat eyeTextureFormat
 	{
@@ -571,12 +538,12 @@ public class OVRManager : MonoBehaviour
 		          "SDK v" + OVRPlugin.nativeSDKVersion + ".");
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-		var supportedTypes = new UnityEngine.Rendering.GraphicsDeviceType[] {
-			UnityEngine.Rendering.GraphicsDeviceType.Direct3D11,
-			UnityEngine.Rendering.GraphicsDeviceType.Direct3D12,
-		};
-		if (!supportedTypes.Contains(SystemInfo.graphicsDeviceType))
-			Debug.LogWarning("VR rendering requires one of the following device types: (" + string.Join(", ", supportedTypes.Select(t=>t.ToString()).ToArray()) + "). Your graphics device: " + SystemInfo.graphicsDeviceType);
+		var supportedTypes =
+			UnityEngine.Rendering.GraphicsDeviceType.Direct3D11.ToString() + ", " +
+			UnityEngine.Rendering.GraphicsDeviceType.Direct3D12.ToString();
+		
+		if (!supportedTypes.Contains(SystemInfo.graphicsDeviceType.ToString()))
+			Debug.LogWarning("VR rendering requires one of the following device types: (" + supportedTypes + "). Your graphics device: " + SystemInfo.graphicsDeviceType.ToString());
 #endif
 
         // Detect whether this platform is a supported platform
@@ -601,12 +568,7 @@ public class OVRManager : MonoBehaviour
         chromatic = false;
 #endif
 
-		if (display == null)
-			display = new OVRDisplay();
-		if (tracker == null)
-			tracker = new OVRTracker();
-		if (boundary == null)
-			boundary = new OVRBoundary();
+        Initialize();
 
 		if (resetTrackerOnLoad)
 			display.RecenterPose();
@@ -615,10 +577,35 @@ public class OVRManager : MonoBehaviour
 		OVRPlugin.occlusionMesh = false;
 	}
 
+#if UNITY_EDITOR
+	private static bool _scriptsReloaded;
+
+	[UnityEditor.Callbacks.DidReloadScripts]
+	static void ScriptsReloaded()
+	{
+		_scriptsReloaded = true;
+	}
+#endif
+
+	void Initialize()
+	{
+		if (display == null)
+			display = new OVRDisplay();
+		if (tracker == null)
+			tracker = new OVRTracker();
+		if (boundary == null)
+			boundary = new OVRBoundary();
+	}
+
 	private void Update()
 	{
-#if !UNITY_EDITOR
-		paused = !OVRPlugin.hasVrFocus;
+#if UNITY_EDITOR
+		if (_scriptsReloaded)
+		{
+			_scriptsReloaded = false;
+			instance = this;
+			Initialize();
+		}
 #endif
 
 		if (OVRPlugin.shouldQuit)
@@ -741,7 +728,7 @@ public class OVRManager : MonoBehaviour
 
 
 		// Changing effective rendering resolution dynamically according performance
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && UNITY_5 && !(UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3)
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && UNITY_5_4_OR_NEWER
 
 		if (enableAdaptiveResolution)
 		{
