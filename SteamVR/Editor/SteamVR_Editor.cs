@@ -54,10 +54,10 @@ public class SteamVR_Editor : Editor
 			{
 				if (AssetDatabase.Contains(target))
 					continue;
-				if (target.isExpanded)
-					collapse = true;
-				else
-					expand = true;
+				// if (target.isExpanded)
+				// 	collapse = true;
+				// else
+				// 	expand = true;
 			}
 
 			if (expand)
@@ -69,11 +69,11 @@ public class SteamVR_Editor : Editor
 					{
 						if (AssetDatabase.Contains(target))
 							continue;
-						if (!target.isExpanded)
-						{
-							target.Expand();
-							EditorUtility.SetDirty(target);
-						}
+						// if (!target.isExpanded)
+						// {
+						// 	target.Expand();
+						// 	EditorUtility.SetDirty(target);
+						// }
 					}
 				}
 				GUILayout.Space(18);
@@ -89,11 +89,11 @@ public class SteamVR_Editor : Editor
 					{
 						if (AssetDatabase.Contains(target))
 							continue;
-						if (target.isExpanded)
-						{
-							target.Collapse();
-							EditorUtility.SetDirty(target);
-						}
+						// if (target.isExpanded)
+						// {
+						// 	target.Collapse();
+						// 	EditorUtility.SetDirty(target);
+						// }
 					}
 				}
 				GUILayout.Space(18);
