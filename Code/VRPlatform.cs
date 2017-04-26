@@ -644,6 +644,7 @@ namespace gs
             try {
                 mainCamGO = find_main_camera();
                 mainCam = mainCamGO.GetComponent<Camera>();
+                Color bgColor = mainCam.backgroundColor;
 
                 cameraRig = GameObject.Instantiate(Resources.Load("OVR/OVRCameraRig")) as GameObject;
                 cameraRig.name = "OVRCameraRig";
@@ -652,8 +653,12 @@ namespace gs
                 List<GameObject> children = new List<GameObject>();
                 collect_all_children(cameraRig, children);
                 foreach ( var child in children ) {
+                    Camera childCam = child.GetComponent<Camera>();
+                    if (childCam != null) {
+                        childCam.backgroundColor = bgColor;
+                        childCam.clearFlags = CameraClearFlags.SolidColor;
+                    }
                     if ( child.tag == "MainCamera" ) {
-                        child.GetComponent<Camera>().backgroundColor = mainCam.backgroundColor;
                         if (child.name != "CenterEyeAnchor")
                             child.tag = "Untagged";
                     }
