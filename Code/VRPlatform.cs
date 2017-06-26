@@ -714,6 +714,9 @@ namespace gs
             GameObject.Destroy(mainCamGO);
             Component.Destroy(mainCam);
 
+            // [RMS] unity 5.6 requires this, otherwise controllers will not be tracked...
+            Camera.main.gameObject.AddComponent<SteamVR_UpdatePoses>();
+
             return cameraRig;
         }
         static GameObject find_main_camera()
