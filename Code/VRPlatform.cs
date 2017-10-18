@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if ! F3_NO_VR_SUPPORT
+
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
@@ -830,3 +832,6 @@ namespace gs
         }
     }
 }
+
+
+#endif
