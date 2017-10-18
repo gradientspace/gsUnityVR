@@ -117,9 +117,13 @@ public static class OVRLint
 			PlayerSettings.graphicsJobs = true;
 #endif
 
+
+        // [RMS] this throws too many warnings!
+#if false
 		if ((!PlayerSettings.MTRendering || !PlayerSettings.mobileMTRendering) &&
 		    EditorUtility.DisplayDialog ("Optimize MT Rendering?", "For CPU performance, please enable multithreaded rendering.", "Use recommended", "Skip"))
 			PlayerSettings.MTRendering = PlayerSettings.mobileMTRendering = true;
+#endif
 
         // [RMS] this throws too many warnings!
 #if false
@@ -132,7 +136,7 @@ public static class OVRLint
 #endif
 
 #if UNITY_5_5_OR_NEWER
-		if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.MultiPass &&
+        if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.MultiPass &&
 		    EditorUtility.DisplayDialog ("Optimize Stereo Rendering?", "For CPU performance, please enable single-pass or instanced stereo rendering.", "Use recommended", "Skip"))
 			PlayerSettings.stereoRenderingPath = StereoRenderingPath.Instancing;
 #elif UNITY_5_4_OR_NEWER
@@ -258,9 +262,9 @@ public static class OVRLint
 			EditorUtility.DisplayDialog("Optimize MSAA?", "Multisample antialiasing level " + OVRManager.display.recommendedMSAALevel + " is recommended for optimal quality and performance.", "Use recommended", "Skip"))
 			QualitySettings.antiAliasing = OVRManager.display.recommendedMSAALevel;
 
-		if (UnityEngine.VR.VRSettings.renderScale > 1.5 &&
+		if (UnityEngine.XR.XRSettings.eyeTextureResolutionScale > 1.5 &&
 			EditorUtility.DisplayDialog ("Optimize Render Scale?", "For CPU performance, please don't use render scale over 1.5.", "Use recommended", "Skip"))
-			UnityEngine.VR.VRSettings.renderScale = 1.5f;
+			UnityEngine.XR.XRSettings.eyeTextureResolutionScale = 1.5f;
 	}
 
 	static void CheckStaticAndroidIssues ()

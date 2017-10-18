@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VR;
+using UnityEngine.XR;
 
 namespace gs
 {
@@ -35,8 +35,8 @@ namespace gs
         // platform interface to detect if VR is enabled/disabled
         public static bool VREnabled
         {
-            get { return VRSettings.enabled; }
-            set { VRSettings.enabled = value; }
+            get { return XRSettings.enabled; }
+            set { XRSettings.enabled = value; }
         }
 
 
@@ -48,9 +48,9 @@ namespace gs
         {
             spatialCameraRig = SpatialCameraRig;
 
-            if (VRSettings.isDeviceActive) {
+            if (XRSettings.isDeviceActive) {
 
-                string sModel = VRDevice.model;
+                string sModel = XRDevice.model;
                 UnityEngine.Debug.Log(string.Format("VRPlatform.Initialize: VRDevice Model is \"{0}\"", sModel));
 
                 if (spatialCameraRig == null) {
@@ -617,7 +617,7 @@ namespace gs
             if (VREnabled == false)
                 return null;
 
-            string sModel = VRDevice.model;
+            string sModel = XRDevice.model;
             UnityEngine.Debug.Log(string.Format(
                 "VRPlatform.AutoConfigureVR: VRDevice Model is \"{0}\", SteamVR.enabled={1}", sModel, SteamVR.enabled));
 
