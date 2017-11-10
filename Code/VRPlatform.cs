@@ -42,6 +42,12 @@ namespace gs
         }
 
 
+        static bool show_platform_controllers = false;
+        public static bool ShowPlatformControllers {
+            get { return show_platform_controllers; }
+            set { show_platform_controllers = value;  /* todo: update! */ }
+        }
+
 
 
         static GameObject spatialCameraRig = null;
@@ -716,9 +722,6 @@ namespace gs
             GameObject.Destroy(mainCamGO);
             Component.Destroy(mainCam);
 
-            // [RMS] unity 5.6 requires this, otherwise controllers will not be tracked...
-            Camera.main.gameObject.AddComponent<SteamVR_UpdatePoses>();
-
             return cameraRig;
         }
         static GameObject find_main_camera()
@@ -759,8 +762,7 @@ namespace gs
             if (leftViveController != null && rightViveController != null)
                 return;
 
-            iLeftViveDeviceIdx = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Leftmost);
-            iRightViveDeviceIdx = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Rightmost);
+            // [RMS] 
 
             int n = spatialCameraRig.transform.childCount;
             for (int i = 0; i < n; ++i) {
@@ -768,11 +770,19 @@ namespace gs
                 SteamVR_TrackedObject tracked = child.GetComponent<SteamVR_TrackedObject>();
                 if (tracked == null)
                     continue;
-                int idx = (int)tracked.index;
-                if (idx == iLeftViveDeviceIdx)
+                if (child.name == "Controller (left)") {
                     leftViveController = child;
-                else if (idx == iRightViveDeviceIdx)
+                }
+                if (child.name == "Controller (right)") {
                     rightViveController = child;
+                }
+            }
+
+            if (ShowPlatformControllers == false) {
+                if (leftViveController != null)
+                    leftViveController.transform.Find("Model").gameObject.SetActive(false);
+                if (rightViveController != null)
+                    rightViveController.transform.Find("Model").gameObject.SetActive(false);
             }
         }
 
@@ -792,28 +802,36 @@ namespace gs
         static SteamVR_Controller.Device LeftViveControllerDevice {
             get {
                 lookup_vive_controllers();
-                if (iLeftViveDeviceIdx == -1)
-                    return SteamVR_Controller.Input(0);
-                return SteamVR_Controller.Input(iLeftViveDeviceIdx);
+                if (leftViveController != null) {
+                    SteamVR_TrackedObject tracked = leftViveController.GetComponent<SteamVR_TrackedObject>();
+                    iLeftViveDeviceIdx = (int)tracked.index;
+                    if ( iLeftViveDeviceIdx != -1)
+                        return SteamVR_Controller.Input((int)tracked.index);
+                }
+                return SteamVR_Controller.Input(0);
             }
         }
         static bool LeftViveControllerDeviceValid {
             get {
-                return iLeftViveDeviceIdx != -1;
+                return leftViveController != null;
             }
         }
 
         static SteamVR_Controller.Device RightViveControllerDevice {
             get {
                 lookup_vive_controllers();
-                if (iRightViveDeviceIdx == -1)
-                    return SteamVR_Controller.Input(0);
-                return SteamVR_Controller.Input(iRightViveDeviceIdx);
+                if (rightViveController != null) {
+                    SteamVR_TrackedObject tracked = rightViveController.GetComponent<SteamVR_TrackedObject>();
+                    iRightViveDeviceIdx = (int)tracked.index;
+                    if (iRightViveDeviceIdx != -1)
+                        return SteamVR_Controller.Input((int)tracked.index);
+                }
+                return SteamVR_Controller.Input(0);
             }
         }
         static bool RightViveControllerDeviceValid {
             get {
-                return iRightViveDeviceIdx != -1;
+                return rightViveController != null;
             }
         }
 
