@@ -83,8 +83,8 @@ public class OVRManager : MonoBehaviour
 		}
 	}
 
-	private IEnumerable<Camera> disabledCameras;
-	float prevTimeScale;
+	//private IEnumerable<Camera> disabledCameras;
+	//float prevTimeScale;
 
 	/// <summary>
 	/// Occurs when an HMD attached.
