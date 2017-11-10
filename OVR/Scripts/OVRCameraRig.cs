@@ -76,6 +76,13 @@ public class OVRCameraRig : MonoBehaviour
 	/// If true, separate cameras will be used for the left and right eyes.
 	/// </summary>
 	public bool usePerEyeCameras = false;
+
+	/// <summary>
+	/// If true, all tracked anchors are updated in FixedUpdate instead of Update to favor physics fidelity.
+	/// \note: If the fixed update rate doesn't match the rendering framerate (OVRManager.display.appFramerate), the anchors will visibly judder.
+	/// </summary>
+	public bool useFixedUpdateForTracking = false;
+
 	private bool _skipUpdate = false;
 
 	private readonly string trackingSpaceName = "TrackingSpace";
@@ -101,12 +108,16 @@ public class OVRCameraRig : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		UpdateAnchors();
+		if (useFixedUpdateForTracking)
+			UpdateAnchors();
 	}
 
 	private void Update()
 	{
 		_skipUpdate = false;
+
+		if (!useFixedUpdateForTracking)
+			UpdateAnchors();
 	}
 
 #endregion
@@ -317,4 +328,27 @@ public class OVRCameraRig : MonoBehaviour
 
 		return anchor;
 	}
+
+	public Matrix4x4 ComputeTrackReferenceMatrix()
+	{
+		if (centerEyeAnchor == null)
+		{
+			Debug.LogError("centerEyeAnchor is required");
+			return Matrix4x4.identity;
+		}
+
+		// The ideal approach would be using UnityEngine.VR.VRNode.TrackingReference, then we would not have to depend on the OVRCameraRig. Unfortunately, it is not available in Unity 5.4.3
+
+		OVRPose headPose;
+		headPose.position = UnityEngine.XR.InputTracking.GetLocalPosition(UnityEngine.XR.XRNode.Head);
+		headPose.orientation = UnityEngine.XR.InputTracking.GetLocalRotation(UnityEngine.XR.XRNode.Head);
+
+		OVRPose invHeadPose = headPose.Inverse();
+		Matrix4x4 invHeadMatrix = Matrix4x4.TRS(invHeadPose.position, invHeadPose.orientation, Vector3.one);
+
+		Matrix4x4 ret = centerEyeAnchor.localToWorldMatrix * invHeadMatrix;
+
+		return ret;
+	}
+
 }

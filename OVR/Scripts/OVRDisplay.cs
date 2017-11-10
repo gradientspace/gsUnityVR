@@ -69,7 +69,7 @@ public class OVRDisplay
 		public float timeWarpError;
 	}
 
-	//  private bool needsConfigureTexture;   // [RMS] disable warning
+	private bool needsConfigureTexture;
 	private EyeRenderDesc[] eyeDescs = new EyeRenderDesc[2];
 
 	/// <summary>
@@ -104,6 +104,9 @@ public class OVRDisplay
 		{
 			RecenteredPose();
 		}
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+		OVRMixedReality.RecenterPose();
+#endif
 	}
 
 	/// <summary>

@@ -376,7 +376,7 @@ public class OVRDebugInfo : MonoBehaviour
 		OVRDisplay.EyeRenderDesc leftEyeDesc = OVRManager.display.GetEyeRenderDesc(UnityEngine.XR.XRNode.LeftEye);
 		OVRDisplay.EyeRenderDesc rightEyeDesc = OVRManager.display.GetEyeRenderDesc(UnityEngine.XR.XRNode.RightEye);
 
-		float scale = UnityEngine.XR.XRSettings.eyeTextureResolutionScale;
+		float scale = UnityEngine.XR.XRSettings.renderViewportScale;
         float w = (int)(scale * (float)(leftEyeDesc.resolution.x + rightEyeDesc.resolution.x));
         float h = (int)(scale * (float)Mathf.Max(leftEyeDesc.resolution.y, rightEyeDesc.resolution.y));
 

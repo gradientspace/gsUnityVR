@@ -1131,6 +1131,106 @@ public static class OVRInput
 		}
 	}
 
+	/// <summary>
+	/// Triggers a recenter to realign the specified controller's virtual pose with the user's real-world pose.
+	/// Only applicable to controllers that require recentering, such as the GearVR Controller.
+	/// Ignored for controllers that do not require recentering.
+	/// </summary>
+	public static void RecenterController(Controller controllerMask = Controller.Active)
+	{
+		if ((controllerMask & Controller.Active) != 0)
+			controllerMask |= activeControllerType;
+
+		for (int i = 0; i < controllers.Count; i++)
+		{
+			OVRControllerBase controller = controllers[i];
+
+			if (ShouldResolveController(controller.controllerType, controllerMask))
+			{
+				controller.RecenterController();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Returns true if the specified controller was recentered this frame.
+	/// Only applicable to controllers that require recentering, such as the GearVR Controller.
+	/// Returns false for controllers that do not require recentering.
+	/// </summary>
+	public static bool GetControllerWasRecentered(Controller controllerMask = Controller.Active)
+	{
+		if ((controllerMask & Controller.Active) != 0)
+			controllerMask |= activeControllerType;
+
+		bool wasRecentered = false;
+
+		for (int i = 0; i < controllers.Count; i++)
+		{
+			OVRControllerBase controller = controllers[i];
+
+			if (ShouldResolveController(controller.controllerType, controllerMask))
+			{
+				wasRecentered |= controller.WasRecentered();
+			}
+		}
+
+		return wasRecentered;
+	}
+
+	/// <summary>
+	/// Returns the number of times the controller has been recentered this session.
+	/// Useful for detecting recenter events and resetting state such as arm model simulations, etc.
+	/// Wraps around to 0 after 255.
+	/// Only applicable to controllers that require recentering, such as the GearVR Controller.
+	/// Returns 0 for controllers that do not require recentering.
+	/// </summary>
+	public static byte GetControllerRecenterCount(Controller controllerMask = Controller.Active)
+	{
+		if ((controllerMask & Controller.Active) != 0)
+			controllerMask |= activeControllerType;
+
+		byte recenterCount = 0;
+
+		for (int i = 0; i < controllers.Count; i++)
+		{
+			OVRControllerBase controller = controllers[i];
+
+			if (ShouldResolveController(controller.controllerType, controllerMask))
+			{
+				recenterCount = controller.GetRecenterCount();
+				break;
+			}
+		}
+
+		return recenterCount;
+	}
+
+	/// <summary>
+	/// Returns the battery percentage remaining for the specified controller. Values range from 0 to 100.
+	/// Only applicable to controllers that report battery level, such as the GearVR Controller.
+	/// Returns 0 for controllers that do not report battery level.
+	/// </summary>
+	public static byte GetControllerBatteryPercentRemaining(Controller controllerMask = Controller.Active)
+	{
+		if ((controllerMask & Controller.Active) != 0)
+			controllerMask |= activeControllerType;
+
+		byte battery = 0;
+
+		for (int i = 0; i < controllers.Count; i++)
+		{
+			OVRControllerBase controller = controllers[i];
+
+			if (ShouldResolveController(controller.controllerType, controllerMask))
+			{
+				battery = controller.GetBatteryPercentRemaining();
+				break;
+			}
+		}
+
+		return battery;
+	}
+
 	private static Vector2 CalculateAbsMax(Vector2 a, Vector2 b)
 	{
 		float absA = a.sqrMagnitude;
@@ -1453,8 +1553,8 @@ public static class OVRInput
 		public VirtualNearTouchMap nearTouchMap = new VirtualNearTouchMap();
 		public VirtualAxis1DMap axis1DMap = new VirtualAxis1DMap();
 		public VirtualAxis2DMap axis2DMap = new VirtualAxis2DMap();
-		public OVRPlugin.ControllerState2 previousState = new OVRPlugin.ControllerState2();
-		public OVRPlugin.ControllerState2 currentState = new OVRPlugin.ControllerState2();
+		public OVRPlugin.ControllerState4 previousState = new OVRPlugin.ControllerState4();
+		public OVRPlugin.ControllerState4 currentState = new OVRPlugin.ControllerState4();
 		public bool shouldApplyDeadzone = true;
 
 		public OVRControllerBase()
@@ -1468,7 +1568,7 @@ public static class OVRInput
 
 		public virtual Controller Update()
 		{
-			OVRPlugin.ControllerState2 state = OVRPlugin.GetControllerState2((uint)controllerType);
+			OVRPlugin.ControllerState4 state = OVRPlugin.GetControllerState4((uint)controllerType);
             //Debug.Log("MalibuManaged - " + (state.Touches & (uint)RawTouch.LTouchpad) + " " + state.LTouchpad.x + " " + state.LTouchpad.y + " " + state.RTouchpad.x + " " + state.RTouchpad.y);
 
 			if (state.LIndexTrigger >= AXIS_AS_BUTTON_THRESHOLD)
@@ -1506,6 +1606,26 @@ public static class OVRInput
 		public virtual void SetControllerVibration(float frequency, float amplitude)
 		{
 			OVRPlugin.SetControllerVibration((uint)controllerType, frequency, amplitude);
+		}
+
+		public virtual void RecenterController()
+		{
+			OVRPlugin.RecenterTrackingOrigin(OVRPlugin.RecenterFlags.Controllers);
+		}
+
+		public virtual bool WasRecentered()
+		{
+			return false;
+		}
+
+		public virtual byte GetRecenterCount()
+		{
+			return 0;
+		}
+
+		public virtual byte GetBatteryPercentRemaining()
+		{
+			return 0;
 		}
 
 		public abstract void ConfigureButtonMap();
@@ -2047,7 +2167,7 @@ public static class OVRInput
 				return Controller.None;
 			}
 
-			OVRPlugin.ControllerState2 state = new OVRPlugin.ControllerState2();
+			OVRPlugin.ControllerState4 state = new OVRPlugin.ControllerState4();
 
 			bool result = OVR_GamepadController_Update();
 
@@ -2294,7 +2414,7 @@ public static class OVRInput
 				return Controller.None;
 			}
 
-			OVRPlugin.ControllerState2 state = new OVRPlugin.ControllerState2();
+			OVRPlugin.ControllerState4 state = new OVRPlugin.ControllerState4();
 
 			state.ConnectedControllers = (uint)Controller.Gamepad;
 
@@ -2528,7 +2648,7 @@ public static class OVRInput
 		public override void ConfigureButtonMap()
 		{
 			buttonMap.None                     = RawButton.None;
-			buttonMap.One                      = RawButton.Start;
+			buttonMap.One                      = RawButton.LTouchpad;
 			buttonMap.Two                      = RawButton.Back;
 			buttonMap.Three                    = RawButton.None;
 			buttonMap.Four                     = RawButton.None;
@@ -2565,7 +2685,7 @@ public static class OVRInput
 		public override void ConfigureTouchMap()
 		{
 			touchMap.None                      = RawTouch.None;
-			touchMap.One                       = RawTouch.None;
+			touchMap.One                       = RawTouch.LTouchpad;
 			touchMap.Two                       = RawTouch.None;
 			touchMap.Three                     = RawTouch.None;
 			touchMap.Four                      = RawTouch.None;
@@ -2629,7 +2749,7 @@ public static class OVRInput
 			buttonMap.Back                     = RawButton.Back;
 			buttonMap.PrimaryShoulder          = RawButton.None;
 			buttonMap.PrimaryIndexTrigger      = RawButton.LIndexTrigger;
-			buttonMap.PrimaryHandTrigger       = RawButton.None;
+			buttonMap.PrimaryHandTrigger       = RawButton.LHandTrigger;
 			buttonMap.PrimaryThumbstick        = RawButton.None;
 			buttonMap.PrimaryThumbstickUp      = RawButton.None;
 			buttonMap.PrimaryThumbstickDown    = RawButton.None;
@@ -2658,11 +2778,11 @@ public static class OVRInput
 		public override void ConfigureTouchMap()
 		{
 			touchMap.None                      = RawTouch.None;
-			touchMap.One                       = RawTouch.None;
+			touchMap.One                       = RawTouch.LTouchpad;
 			touchMap.Two                       = RawTouch.None;
 			touchMap.Three                     = RawTouch.None;
 			touchMap.Four                      = RawTouch.None;
-			touchMap.PrimaryIndexTrigger       = RawTouch.None;
+			touchMap.PrimaryIndexTrigger       = RawTouch.LIndexTrigger;
 			touchMap.PrimaryThumbstick         = RawTouch.None;
 			touchMap.PrimaryThumbRest          = RawTouch.None;
 			touchMap.PrimaryTouchpad           = RawTouch.LTouchpad;
@@ -2684,8 +2804,8 @@ public static class OVRInput
 		public override void ConfigureAxis1DMap()
 		{
 			axis1DMap.None                     = RawAxis1D.None;
-			axis1DMap.PrimaryIndexTrigger      = RawAxis1D.None;
-			axis1DMap.PrimaryHandTrigger       = RawAxis1D.None;
+			axis1DMap.PrimaryIndexTrigger      = RawAxis1D.LIndexTrigger;
+			axis1DMap.PrimaryHandTrigger       = RawAxis1D.LHandTrigger;
 			axis1DMap.SecondaryIndexTrigger    = RawAxis1D.None;
 			axis1DMap.SecondaryHandTrigger     = RawAxis1D.None;
 		}
@@ -2756,6 +2876,21 @@ public static class OVRInput
 
             return res;
         }
+
+		public override bool WasRecentered()
+		{
+			return (currentState.LRecenterCount != previousState.LRecenterCount);
+		}
+
+		public override byte GetRecenterCount()
+		{
+			return currentState.LRecenterCount;
+		}
+
+		public override byte GetBatteryPercentRemaining()
+		{
+			return currentState.LBatteryPercentRemaining;
+		}
 	}
 
 	private class OVRControllerRTrackedRemote : OVRControllerBase
@@ -2780,7 +2915,7 @@ public static class OVRInput
 			buttonMap.Back                     = RawButton.Back;
 			buttonMap.PrimaryShoulder          = RawButton.None;
 			buttonMap.PrimaryIndexTrigger      = RawButton.RIndexTrigger;
-			buttonMap.PrimaryHandTrigger       = RawButton.None;
+			buttonMap.PrimaryHandTrigger       = RawButton.RHandTrigger;
 			buttonMap.PrimaryThumbstick        = RawButton.None;
 			buttonMap.PrimaryThumbstickUp      = RawButton.None;
 			buttonMap.PrimaryThumbstickDown    = RawButton.None;
@@ -2809,11 +2944,11 @@ public static class OVRInput
 		public override void ConfigureTouchMap()
 		{
 			touchMap.None                      = RawTouch.None;
-			touchMap.One                       = RawTouch.None;
+			touchMap.One                       = RawTouch.RTouchpad;
 			touchMap.Two                       = RawTouch.None;
 			touchMap.Three                     = RawTouch.None;
 			touchMap.Four                      = RawTouch.None;
-			touchMap.PrimaryIndexTrigger       = RawTouch.None;
+			touchMap.PrimaryIndexTrigger       = RawTouch.RIndexTrigger;
 			touchMap.PrimaryThumbstick         = RawTouch.None;
 			touchMap.PrimaryThumbRest          = RawTouch.None;
 			touchMap.PrimaryTouchpad           = RawTouch.RTouchpad;
@@ -2835,8 +2970,8 @@ public static class OVRInput
 		public override void ConfigureAxis1DMap()
 		{
 			axis1DMap.None                     = RawAxis1D.None;
-			axis1DMap.PrimaryIndexTrigger      = RawAxis1D.None;
-			axis1DMap.PrimaryHandTrigger       = RawAxis1D.None;
+			axis1DMap.PrimaryIndexTrigger      = RawAxis1D.RIndexTrigger;
+			axis1DMap.PrimaryHandTrigger       = RawAxis1D.RHandTrigger;
 			axis1DMap.SecondaryIndexTrigger    = RawAxis1D.None;
 			axis1DMap.SecondaryHandTrigger     = RawAxis1D.None;
 		}
@@ -2907,5 +3042,20 @@ public static class OVRInput
 
             return res;
         }
+
+		public override bool WasRecentered()
+		{
+			return (currentState.RRecenterCount != previousState.RRecenterCount);
+		}
+
+		public override byte GetRecenterCount()
+		{
+			return currentState.RRecenterCount;
+		}
+
+		public override byte GetBatteryPercentRemaining()
+		{
+			return currentState.RBatteryPercentRemaining;
+		}
     }
 }
