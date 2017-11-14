@@ -31,7 +31,7 @@ public class SteamVR_Stats : MonoBehaviour
 		//}
 	}
 
-	double lastUpdate = 0.0f;
+	//double lastUpdate = 0.0f;
 
 	void Update()
 	{
