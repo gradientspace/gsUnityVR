@@ -699,6 +699,8 @@ namespace gs
             try {
                 mainCamGO = find_main_camera();
                 mainCam = mainCamGO.GetComponent<Camera>();
+                Color bgColor = mainCam.backgroundColor;
+                bool is_solid_bg = (mainCam.clearFlags & CameraClearFlags.SolidColor) != 0;
 
                 GameObject steamVR = GameObject.Instantiate(Resources.Load("SteamVR/[SteamVR]")) as GameObject;
                 steamVR.name = "[SteamVR]";
@@ -707,6 +709,20 @@ namespace gs
                 //status.name = "[Status]";
                 cameraRig = GameObject.Instantiate(Resources.Load("SteamVR/[CameraRig]")) as GameObject;
                 cameraRig.name = "[CameraRig]";
+
+                // transfer background color to any child cameras
+                if (is_solid_bg) {
+                    List<GameObject> children = new List<GameObject>();
+                    collect_all_children(cameraRig, children);
+                    foreach (var child in children) {
+                        Camera childCam = child.GetComponent<Camera>();
+                        if (childCam != null) {
+                            childCam.backgroundColor = bgColor;
+                            childCam.clearFlags = CameraClearFlags.SolidColor;
+                        }
+                    }
+                }
+
             } catch ( Exception e ) {
                 UnityEngine.Debug.Log(string.Format(
                     "VRPlatform.AutoConfigureVR: Error instantiating Vive VR Prefabs: " + e.Message));
